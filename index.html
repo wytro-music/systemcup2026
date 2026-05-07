@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Wytro – Waiting for you</title>
+  <link rel="icon" href="favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<style>
+		:root {
+		  --accent: #1db954;
+		  --accent-soft: #1ed760;
+		  --text-main: #ffffff;
+		  --text-muted: #d1d5db;
+		}
+
+		* {
+		  box-sizing: border-box;
+		  margin: 0;
+		  padding: 0;
+		}
+
+		body {
+		  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+		  color: var(--text-main);
+		  min-height: 100vh;
+		  display: flex;
+		  justify-content: center;
+		  align-items: center;
+		  padding: 1.5rem 1.2rem;
+		  position: relative;
+		  overflow-x: hidden;
+
+		  background: url("background.jpg") center center / cover no-repeat fixed;
+		}
+
+		body::after {
+		  content: "";
+		  position: fixed;
+		  inset: 0;
+		  background: rgba(0,0,0,0.55);
+		  z-index: -1;
+		}
+
+		.page {
+		  width: 100%;
+		  max-width: 530px;
+		  background: rgba(0,0,0,0.5);
+		  backdrop-filter: blur(10px);
+		  border-radius: 22px;
+		  border: 1px solid rgba(255,255,255,0.08);
+		  padding: 1.4rem 1.3rem 1.2rem;
+		  display: flex;
+		  flex-direction: column;
+		  align-items: center;
+		  gap: 1.1rem;
+		  text-align: center;
+		}
+
+		.badge {
+		  display: inline-flex;
+		  align-items: center;
+		  gap: 0.35rem;
+		  padding: 0.28rem 0.7rem;
+		  border-radius: 999px;
+		  border: 1px solid rgba(250,250,250,0.4);
+		  font-size: 0.7rem;
+		  letter-spacing: 0.09em;
+		  text-transform: uppercase;
+		  color: var(--text-muted);
+		}
+
+		.badge-dot {
+		  width: 7px;
+		  height: 7px;
+		  border-radius: 999px;
+		  background: var(--accent);
+		  box-shadow: 0 0 10px rgba(30,215,96,0.7);
+		}
+
+		/* ✅ FIX: position: relative per ancorare l'overlay alla cover */
+		.cover-card {
+		  width: 100%;
+		  border-radius: 18px;
+		  overflow: hidden;
+		  box-shadow:
+			0 14px 32px rgba(0,0,0,0.9),
+			0 0 0 1px rgba(255,255,255,0.06);
+
+		  position: relative;     /* <-- fondamentale */
+		  cursor: pointer;
+		}
+
+		.cover-image {
+		  width: 100%;
+		  display: block;
+		  height: auto;
+		}
+
+		/* ✅ Overlay che copre tutta l'immagine e centra l'icona */
+		.play-overlay {
+		  position: absolute;
+		  inset: 0; /* top/right/bottom/left: 0 */
+		  display: flex;
+		  align-items: center;
+		  justify-content: center;
+
+		  background: rgba(0,0,0,0.20);
+		  opacity: 0;
+		  transition: opacity 0.2s ease, background 0.2s ease, transform 0.2s ease;
+		}
+
+		/* icona */
+		.play-overlay svg {
+		  width: 84px;
+		  height: 84px;
+		  filter: drop-shadow(0 0 18px rgba(30,215,96,0.45));
+		  transform: scale(0.98);
+		  transition: transform 0.2s ease, filter 0.2s ease;
+		}
+
+		.cover-card:hover .play-overlay {
+		  opacity: 1;
+		  background: rgba(0,0,0,0.30);
+		}
+
+		.cover-card:hover .play-overlay svg {
+		  transform: scale(1.05);
+		  filter: drop-shadow(0 0 22px rgba(30,215,96,0.70));
+		}
+
+		/* opzionale: overlay sempre visibile su mobile (no hover) */
+		@media (hover: none) {
+		  .play-overlay { opacity: 1; }
+		}
+
+		h1 {
+		  font-size: 1.8rem;
+		  letter-spacing: 0.2em;
+		  text-transform: uppercase;
+		  font-weight: 800;
+		}
+
+		.subtitle {
+		  font-size: 0.95rem;
+		  color: var(--text-muted);
+		  line-height: 1.5;
+		}
+
+		.buttons {
+		  display: flex;
+		  flex-direction: column;
+		  gap: 0.6rem;
+		  width: 100%;
+		  margin-top: 0.4rem;
+		}
+
+		.btn {
+		  padding: 0.85rem 1.2rem;
+		  border-radius: 999px;
+		  font-size: 0.95rem;
+		  font-weight: 600;
+		  cursor: pointer;
+		  text-decoration: none;
+		  display: inline-flex;
+		  align-items: center;
+		  justify-content: center;
+		  border: none;
+		  width: 100%;
+		  transition:
+			transform 0.08s ease,
+			box-shadow 0.12s ease,
+			background 0.12s ease,
+			border-color 0.12s ease,
+			color 0.12s ease;
+		  gap: 0.45rem;
+		}
+
+		.icon-img {
+		  width: 26px;
+		  height: 26px;
+		  object-fit: contain;
+		}
+
+		.btn-primary {
+		  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+		  color: #000;
+		  box-shadow: 0 10px 24px rgba(30,215,96,0.55);
+		}
+
+		.btn-primary:hover {
+		  box-shadow:
+			0 0 18px rgba(30,215,96,0.9),
+			0 14px 28px rgba(0,0,0,0.9);
+		  filter: brightness(1.03);
+		}
+
+		.btn-secondary {
+		  background: rgba(255,255,255,0.04);
+		  color: var(--text-muted);
+		  border: 1px solid rgba(255,255,255,0.22);
+		}
+
+		.btn-secondary:hover {
+		  border-color: rgba(255,255,255,0.45);
+		  background: rgba(255,255,255,0.08);
+		  color: #e5e7eb;
+		}
+
+		.btn:active {
+		  transform: translateY(1px) scale(0.985);
+		  box-shadow: 0 6px 14px rgba(0,0,0,0.8);
+		}
+
+		.hint {
+		  font-size: 0.78rem;
+		  color: var(--text-muted);
+		  margin-top: 0.3rem;
+		}
+
+		.footer {
+		  margin-top: 0.8rem;
+		  width: 100%;
+		  display: flex;
+		  flex-direction: column;
+		  gap: 0.3rem;
+		  font-size: 0.78rem;
+		  color: var(--text-muted);
+		  align-items: center;
+		}
+
+		.footer a {
+		  color: var(--text-muted);
+		  text-decoration: none;
+		  border-bottom: 1px dashed rgba(209,213,219,0.7);
+		  padding-bottom: 1px;
+		}
+
+		.footer a:hover {
+		  color: #e5e7eb;
+		  border-bottom-style: solid;
+		}
+
+		@media (min-width: 420px) {
+		  body { padding: 2rem; }
+		}
+	</style>
+	
+	<!-- Google Analytics (GA4) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-8FYY9CFR2W"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+	  gtag('config', 'G-8FYY9CFR2W');
+	</script>
+	
+</head>
+
+<body>
+  <div class="page">
+
+    <div class="badge">
+      <span class="badge-dot"></span>
+      <span>New single out <span id="releaseDate">—</span></span>
+    </div>
+
+    <div class="cover-card" id="coverCard" aria-label="Play preview" role="button" tabindex="0">
+      <img src="cover.jpg" alt="Cover artwork" class="cover-image">
+
+      <div class="play-overlay" id="playOverlay" aria-hidden="true">
+        <!-- Default: PLAY icon -->
+        <svg id="playIcon" viewBox="0 0 24 24" fill="white">
+          <polygon points="8,5 19,12 8,19"></polygon>
+        </svg>
+
+        <!-- Hidden initially: PAUSE icon -->
+        <svg id="pauseIcon" viewBox="0 0 24 24" fill="white" style="display:none;">
+          <rect x="7" y="5" width="3" height="14"></rect>
+          <rect x="14" y="5" width="3" height="14"></rect>
+        </svg>
+      </div>
+
+      <audio id="player" src="preview.mp3" preload="none"></audio>
+    </div>
+
+    <h1>WYTRO</h1>
+
+    <p class="subtitle">
+      Wytro is an Italian producer blending melodic EDM, modern italo dance and pop-driven club energy, focused on catchy hooks, clean production and memorable melodies.
+    </p>
+
+    <div class="buttons">
+	  <button class="btn btn-primary" id="spotifyAppBtn">
+  	    <img src="icon-spotifyapp.png" class="icon-img" alt="">
+	    <span>Listen on Spotify (app)</span>
+	  </button>
+
+      <a class="btn btn-secondary" id="spotifyWebLink" href="#">
+	    <img src="icon-spotify.png" class="icon-img" alt="">
+	    <span>Listen on Spotify (web)</span>
+	  </a>
+
+	<a class="btn btn-secondary" id="deezerLink" href="#">
+	  <img src="icon-deezer.png" class="icon-img" alt="">
+	  <span>Listen on Deezer</span>
+	</a>
+
+	<a class="btn btn-secondary" id="appleMusicLink" href="#">
+	  <img src="icon-apple.png" class="icon-img" alt="">
+	  <span>Listen on Apple Music</span>
+	</a>
+
+	<a class="btn btn-secondary" id="amazonMusicLink" href="#">
+	  <img src="icon-amazon.png" class="icon-img" alt="">
+	  <span>Listen on Amazon Music</span>
+	</a>
+
+	<a class="btn btn-secondary" id="youtubeLink" href="#">
+	  <img src="icon-youtube.png" class="icon-img" alt="">
+	  <span>Listen on YouTube</span>
+	</a>
+
+    </div>
+
+    <div class="hint">
+      If your browser asks for permission to open Spotify, confirm to launch the app.
+    </div>
+
+    <div class="footer">
+      <div>© 2025 Wytro – All rights reserved.</div>
+
+      <a href="https://www.instagram.com/wytro.music/">
+        <img src="icon-instagram.png" class="icon-img" alt="">
+        <span>Visit Wytro on Instagram</span>
+      </a>
+    </div>
+
+  </div>
+
+	<script>
+		const card = document.getElementById('coverCard');
+		const audio = document.getElementById('player');
+		const playIcon = document.getElementById('playIcon');
+		const pauseIcon = document.getElementById('pauseIcon');
+
+		function syncIcon() {
+			const isPlaying = !audio.paused;
+			playIcon.style.display = isPlaying ? 'none' : 'block';
+			pauseIcon.style.display = isPlaying ? 'block' : 'none';
+		}
+
+		function togglePlay() {
+			if (audio.paused) audio.play();
+			else audio.pause();
+		}
+
+		card.addEventListener('click', togglePlay);
+
+		// accessibilità: ENTER/SPACE
+		card.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				togglePlay();
+			}
+		});
+
+		audio.addEventListener('play', syncIcon);
+		audio.addEventListener('pause', syncIcon);
+		audio.addEventListener('ended', syncIcon);
+
+		syncIcon();
+	</script>
+
+<script>
+  // Disabilita i bottoni finché non carico i link veri (evita click su "#")
+  document.addEventListener('DOMContentLoaded', () => {
+    document.documentElement.classList.add('links-loading');
+  });
+
+  async function loadData() {
+    const res = await fetch('./data.json', { cache: 'no-store' }); // path robusto su GitHub Pages
+    if (!res.ok) throw new Error('data.json non trovato');
+    return res.json();
+  }
+
+  function gaEvent(name, params) {
+    if (typeof window.gtag === 'function') window.gtag('event', name, params);
+  }
+
+  function bindOutbound(el, platform) {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Tracking
+      gaEvent('outbound_click', {
+        platform,
+        link_url: el.href,
+        transport_type: 'beacon'
+      });
+
+      // Apri link
+      window.open(el.href, '_blank', 'noopener');
+    }, true);
+  }
+
+  function bindSpotifyApp(btn, uri) {
+    // Tracking best-effort prima possibile
+    btn.addEventListener('pointerdown', () => {
+      gaEvent('spotify_app_open', {
+        platform: 'spotify_app',
+        link_url: uri,
+        transport_type: 'beacon'
+      });
+    }, { passive: true });
+
+    // Apri app subito (NO delay)
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = uri;
+    }, true);
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const data = await loadData();
+
+    // Set testi
+    const rd = document.getElementById('releaseDate');
+    if (rd) rd.textContent = data.releaseDate;
+
+    // Elementi
+    const spotifyWeb = document.getElementById('spotifyWebLink');
+    const deezer = document.getElementById('deezerLink');
+    const apple = document.getElementById('appleMusicLink');
+    const amazon = document.getElementById('amazonMusicLink');
+    const youtube = document.getElementById('youtubeLink');
+    const spotifyAppBtn = document.getElementById('spotifyAppBtn');
+
+    // Set href veri (NO "#")
+    spotifyWeb.href = data.spotifyWeb;
+    deezer.href = data.deezer;
+    apple.href = data.appleMusic;
+    amazon.href = data.amazonMusic;
+    youtube.href = data.youtube;
+
+    // Bind tracking + apertura
+    bindOutbound(spotifyWeb, 'spotify_web');
+    bindOutbound(deezer, 'deezer');
+    bindOutbound(apple, 'apple_music');
+    bindOutbound(amazon, 'amazon_music');
+    bindOutbound(youtube, 'youtube');
+
+    // Spotify app dal JSON
+    bindSpotifyApp(spotifyAppBtn, data.spotifyAppUri);
+
+    // Riabilita bottoni (ora hanno link veri)
+    document.documentElement.classList.remove('links-loading');
+  });
+</script>
+
+<style>
+  /* mentre carico data.json disabilito click sui bottoni */
+  .links-loading .buttons a,
+  .links-loading .buttons button,
+  .links-loading .footer a {
+    pointer-events: none;
+    opacity: 0.6;
+  }
+</style>
+
+
+</body>
+</html>
